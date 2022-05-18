@@ -1,75 +1,32 @@
 import React from "react";
-import { StyleSheet, useWindowDimensions } from "react-native";
-import {
-  Canvas,
-  Circle,
-  Fill,
-  useClockValue,
-  useTouchHandler,
-  useValue,
-  useValueEffect,
-} from "@shopify/react-native-skia";
+import { StyleSheet } from "react-native";
+import { Canvas, Fill, useTouchHandler, Path, Skia, PathVerb, useCanvasRef } from "@shopify/react-native-skia";
 
-import { AnimationDemo, Size, Padding } from "./Components";
+import { AnimationDemo } from "./Components";
 
 export const AnimationWithTouchHandler = () => {
-  const { width } = useWindowDimensions();
-  // Clock for driving the animation
-  const clock = useClockValue();
+  const path = Skia.Path.Make();
 
-  // Translate X value for the circle
-  const translateX = useValue((width - Size - Padding) / 2);
-  // Offset to let us pick up the circle from anywhere
-  const offsetX = useValue(0);
-  // The circle's velocity
-  const circleVelocity = useValue(0);
-
-  // Effect that will listen for updates on the clock and
-  // calculate the next position of the circle
-  useValueEffect(clock, () => {
-    const leftBoundary = Size;
-    const rightBoundary = width - Size - Padding;
-    let nextValue = translateX.current + circleVelocity.current;
-    if (nextValue <= leftBoundary || nextValue >= rightBoundary) {
-      // Reverse direction
-      circleVelocity.current *= -1;
-      nextValue = Math.max(leftBoundary, Math.min(rightBoundary, nextValue));
-      // Reduce force on the circle
-      circleVelocity.current *= 0.75;
-    }
-    translateX.current = nextValue;
-    circleVelocity.current *= 0.95;
-
-    // Stop clock when we reach threshold
-    if (Math.abs(circleVelocity.current) < 0.001) {
-      clock.stop();
-    }
-  });
+  const canvasRef = useCanvasRef();
 
   // Touch handler
   const touchHandler = useTouchHandler({
-    onStart: ({ x }) => {
-      clock.stop();
-      offsetX.current = x - translateX.current;
+    onStart: ({ x, y }) => {
+      path.moveTo(x, y);
     },
-    onActive: ({ x }) => {
-      translateX.current = Math.max(
-        Size,
-        Math.min(width - Size - Padding, x - offsetX.current)
-      );
+    onActive: ({ x, y }) => {
+      path.lineTo(x, y);
     },
-    onEnd: ({ velocityX }) => {
-      circleVelocity.current = velocityX * 0.05;
-      clock.start();
+    onEnd: ({}) => {
+      path.close();
     },
   });
 
   return (
     <AnimationDemo title={"Bouncing animation with touch handler"}>
-      <Canvas style={styles.canvas} onTouch={touchHandler}>
+      <Canvas style={styles.canvas} ref={canvasRef} onTouch={touchHandler}>
         <Fill color="white" />
-        <Circle cx={translateX} cy={40} r={20} color="#3E3E" />
-        <Circle cx={translateX} cy={40} r={15} color="#AEAE" />
+        <Path path={path} color="lightblue" />
       </Canvas>
     </AnimationDemo>
   );
@@ -77,7 +34,7 @@ export const AnimationWithTouchHandler = () => {
 
 const styles = StyleSheet.create({
   canvas: {
-    height: 80,
+    height: "100%",
     width: "100%",
     backgroundColor: "#FEFEFE",
   },
