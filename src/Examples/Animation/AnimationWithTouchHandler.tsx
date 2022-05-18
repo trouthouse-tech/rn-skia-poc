@@ -6,9 +6,7 @@ import {
   useTouchHandler,
   Path,
   Skia,
-  PathVerb,
   useCanvasRef,
-  useValue,
 } from "@shopify/react-native-skia";
 
 import { AnimationDemo } from "./Components";
