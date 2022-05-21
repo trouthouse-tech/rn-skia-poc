@@ -1,13 +1,6 @@
 import React from "react";
 import { StyleSheet } from "react-native";
-import {
-  Canvas,
-  Fill,
-  useTouchHandler,
-  Path,
-  Skia,
-  useCanvasRef,
-} from "@shopify/react-native-skia";
+import { Canvas, Fill, useTouchHandler, Path, Skia, useCanvasRef } from "@shopify/react-native-skia";
 
 import { AnimationDemo } from "./Components";
 
@@ -18,11 +11,18 @@ export const AnimationWithTouchHandler = () => {
 
   // Touch handler
   const touchHandler = useTouchHandler({
-    onStart: ({ x, y }) => {
-      path.moveTo(x, y);
+    onStart: (touch) => {
+      const { x, y, isPencil } = touch;
+      if (isPencil) {
+        path.moveTo(x, y);
+      }
     },
-    onActive: ({ x, y }) => {
-      path.lineTo(x, y);
+    onActive: (touch) => {
+      console.log(touch);
+      const { x, y, isPencil } = touch;
+      if (isPencil) {
+        path.lineTo(x, y);
+      }
     },
     onEnd: ({}) => {},
   });
